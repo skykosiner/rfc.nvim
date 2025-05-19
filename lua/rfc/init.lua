@@ -97,7 +97,7 @@ function M:search_rfc(opts)
                 local cleaned_lines = {}
 
                 for _, line in ipairs(lines) do
-                    line = line:gsub("", " ") -- replace form feed char with space
+                    line = line:gsub("", " ")
                     table.insert(cleaned_lines, line)
                 end
 
