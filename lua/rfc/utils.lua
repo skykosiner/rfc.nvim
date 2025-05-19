@@ -10,7 +10,7 @@ end
 
 ---@param lines string[]
 function utils:open_rfc_window(lines)
-    local buf_id = vim.api.nvim_create_buf(false, true)
+    local buf_id = vim.api.nvim_create_buf(true, true)
     local line_num = 0
 
     for _, line in ipairs(lines) do

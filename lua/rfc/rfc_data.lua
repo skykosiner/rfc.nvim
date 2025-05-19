@@ -19,8 +19,9 @@ function M:run_search(query)
 end
 
 ---@param rfc_id number
+---@param callback fun(lines: string[]): void
 function M:get_rfc_text(rfc_id, callback)
-    local test = Job:new({
+    Job:new({
         command = "curl",
         args = {
             "https://www.rfc-editor.org/rfc/rfc" .. rfc_id .. ".txt"
@@ -32,9 +33,6 @@ function M:get_rfc_text(rfc_id, callback)
             end)
         end,
     }):start()
-
-    -- local resp = curl.get("https://www.rfc-editor.org/rfc/rfc" .. rfc_id .. ".txt")
-    -- return utils:split_on_newline(resp.body)
 end
 
 return M

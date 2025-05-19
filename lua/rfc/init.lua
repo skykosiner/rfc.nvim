@@ -76,6 +76,7 @@ function M:search_rfc(opts)
                 rfc_data:get_rfc_text(selection.rfc_number, function(lines)
                     actions.close(prompt_bufnr)
                     utils:open_rfc_window(lines)
+                    vim.api.nvim_buf_set_name(0, tostring(selection.rfc_number))
                 end)
             end)
             return true
