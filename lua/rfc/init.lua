@@ -70,6 +70,7 @@ function M:search_rfc(opts)
             end,
         }),
         sorter = conf.generic_sorter(opts),
+        -- TODO: Add support for tabs, splits, and so on within telescope
         attach_mappings = function(prompt_bufnr)
             actions.select_default:replace(function()
                 local selection = action_state.get_selected_entry().value
