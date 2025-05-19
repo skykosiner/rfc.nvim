@@ -12,3 +12,6 @@ them inside of neovim
     }
 }
 ```
+## Usage
+* You can run `:RFC` and just enter a search query in order to use this plugin
+* You can also use `require("rfc").search_rfc()` if you wish
