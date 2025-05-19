@@ -1,9 +1,10 @@
-local curl          = require "plenary.curl"
 local entry_display = require("telescope.pickers.entry_display")
 local conf          = require("telescope.config").values
 local previewers    = require('telescope.previewers')
 local actions       = require('telescope.actions')
 local action_state  = require('telescope.actions.state')
+local rfc_data      = require('rfc.rfc_data')
+local utils         = require('rfc.utils')
 
 local M             = {}
 
@@ -14,47 +15,10 @@ local M             = {}
 ---@field words number
 ---@field title string
 
----@param query string
----@return RFC[]
-local function run_search(query)
-    local res = curl.get("https://datatracker.ietf.org/api/v1/doc/document/?title__contains=" ..
-        query:gsub("%s", "%%20") .. "&type=rfc")
-    return vim.fn.json_decode(res.body).objects
-end
-
-local function split_on_newline(input)
-    local result = {}
-    for line in input:gmatch("([^\n]+)") do
-        table.insert(result, line)
-    end
-    return result
-end
-
----@param rfc_id number
----@return string[]
-local function get_rfc_text(rfc_id)
-    local res = curl.get("https://www.rfc-editor.org/rfc/rfc" .. rfc_id .. ".txt")
-    return split_on_newline(res.body)
-end
-
----@param lines string[]
-local function open_rfc_window(lines)
-    local buf_id = vim.api.nvim_create_buf(false, true)
-    local line_num = 0
-
-    for _, line in ipairs(lines) do
-        line = line:gsub("", " ")
-        vim.api.nvim_buf_set_lines(buf_id, line_num, -1, true, { line })
-        line_num = line_num + 1
-    end
-
-    vim.api.nvim_win_set_buf(0, buf_id)
-end
-
 function M:search_rfc(opts)
     opts = opts or {}
-    local search = vim.fn.input("Enter keyword > ")
-    local rfcs = run_search(search)
+    local query = vim.fn.input("Enter keyword > ")
+    local rfcs = rfc_data:run_search(query)
 
     local displayer = entry_display.create({
         separator = " ",
@@ -79,7 +43,7 @@ function M:search_rfc(opts)
     end
 
     require("telescope.pickers").new(opts, {
-        prompt_title = "RFCs: " .. search,
+        prompt_title = "RFCs: " .. query,
         finder = require("telescope.finders").new_table({
             results = entries,
             entry_maker = function(entry)
@@ -93,7 +57,7 @@ function M:search_rfc(opts)
         previewer = previewers.new_buffer_previewer({
             title = "RFC",
             define_preview = function(self, entry)
-                local lines = get_rfc_text(entry.value.rfc_number)
+                local lines = rfc_data:get_rfc_text(entry.value.rfc_number)
                 local cleaned_lines = {}
 
                 for _, line in ipairs(lines) do
@@ -108,9 +72,10 @@ function M:search_rfc(opts)
         attach_mappings = function(prompt_bufnr)
             actions.select_default:replace(function()
                 local selection = action_state.get_selected_entry().value
+                local lines = rfc_data:get_rfc_text(selection.rfc_number)
+
                 actions.close(prompt_bufnr)
-                local lines = get_rfc_text(selection.rfc_number)
-                open_rfc_window(lines)
+                utils:open_rfc_window(lines)
             end)
             return true
         end,
