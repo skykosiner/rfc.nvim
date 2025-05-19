@@ -15,8 +15,9 @@ local M             = {}
 ---@field words number
 ---@field title string
 
-function M:search_rfc(opts)
+function M.search_rfc(opts)
     opts = opts or {}
+
     local query = vim.fn.input("Enter keyword > ")
     local rfcs = rfc_data:run_search(query)
 
