@@ -1,4 +1,5 @@
 local curl  = require "plenary.curl"
+local Job   = require "plenary.job"
 local utils = require('rfc.utils')
 
 local M     = {}
@@ -18,10 +19,22 @@ function M:run_search(query)
 end
 
 ---@param rfc_id number
----@return string[]
-function M:get_rfc_text(rfc_id)
-    local resp = curl.get("https://www.rfc-editor.org/rfc/rfc" .. rfc_id .. ".txt")
-    return utils:split_on_newline(resp.body)
+function M:get_rfc_text(rfc_id, callback)
+    local test = Job:new({
+        command = "curl",
+        args = {
+            "https://www.rfc-editor.org/rfc/rfc" .. rfc_id .. ".txt"
+        },
+        on_exit = function(j, return_val)
+            local raw = j:result()
+            vim.schedule(function()
+                callback(utils:split_on_newline(table.concat(raw, "\n")))
+            end)
+        end,
+    }):start()
+
+    -- local resp = curl.get("https://www.rfc-editor.org/rfc/rfc" .. rfc_id .. ".txt")
+    -- return utils:split_on_newline(resp.body)
 end
 
 return M

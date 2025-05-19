@@ -57,25 +57,26 @@ function M:search_rfc(opts)
         previewer = previewers.new_buffer_previewer({
             title = "RFC",
             define_preview = function(self, entry)
-                local lines = rfc_data:get_rfc_text(entry.value.rfc_number)
-                local cleaned_lines = {}
+                rfc_data:get_rfc_text(entry.value.rfc_number, function(lines)
+                    local cleaned_lines = {}
 
-                for _, line in ipairs(lines) do
-                    line = line:gsub("", " ")
-                    table.insert(cleaned_lines, line)
-                end
+                    for _, line in ipairs(lines) do
+                        line = line:gsub("", " ")
+                        table.insert(cleaned_lines, line)
+                    end
 
-                vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, true, cleaned_lines)
+                    vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, true, cleaned_lines)
+                end)
             end,
         }),
         sorter = conf.generic_sorter(opts),
         attach_mappings = function(prompt_bufnr)
             actions.select_default:replace(function()
                 local selection = action_state.get_selected_entry().value
-                local lines = rfc_data:get_rfc_text(selection.rfc_number)
-
-                actions.close(prompt_bufnr)
-                utils:open_rfc_window(lines)
+                rfc_data:get_rfc_text(selection.rfc_number, function(lines)
+                    actions.close(prompt_bufnr)
+                    utils:open_rfc_window(lines)
+                end)
             end)
             return true
         end,
